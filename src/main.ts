@@ -17,6 +17,8 @@ async function bootstrap() {
   app.engine('html', mustache());
   await app.listen(configService.get('PORT') ?? 3000).then(() => {
     console.log(`Application is running on: http://localhost:${configService.get('PORT')}`);
+  }).catch((error) => {
+    console.error(error);
   })
 }
 void bootstrap();

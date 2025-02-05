@@ -16,6 +16,7 @@ export class GetCookieInterceptor implements NestInterceptor {
         const request = ctx.getRequest<RequestWithToken>();
 
         const access_token: unknown = request.cookies?.access_token;
+
         console.log('dari cookie interceptors', access_token);
         console.log(typeof access_token);
         if (access_token === '') {
@@ -27,9 +28,13 @@ export class GetCookieInterceptor implements NestInterceptor {
         const checkToken: unknown = this.jwtService.decode(access_token)
         if (checkToken) {
             request.access_token = access_token;
-
             return next.handle().pipe(
-                map((data: unknown) => data),
+                map((data: unknown) => {
+                    return {
+                        custom: 'response-custom success get token',
+                        data,
+                    }
+                }),
             );
         } else {
             throw new UnauthorizedException('Access token invalid');

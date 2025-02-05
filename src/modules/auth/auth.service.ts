@@ -27,7 +27,7 @@ export class AuthService {
         return new ResponseAPI(HttpStatus.CREATED, 'Pengguna berhasil dibuat', createUser);
     }
 
-    async Login(user: LoginDTO, res: Response): Promise<void> {
+    async Login(user: LoginDTO, res: Response): Promise<ResponseAPI<UserDTO>> {
         const { email, password } = user;
         if (!process.env.JWT_SECRET) {
             throw new HttpException('JWT_SECRET is not set', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -53,6 +53,7 @@ export class AuthService {
             email: findUser.email
         }
         res.status(HttpStatus.OK).json(new ResponseAPI(HttpStatus.OK, 'Login berhasil', data));
+        return new ResponseAPI(HttpStatus.OK, 'Login berhasil', data);
     }
 
     async GetProfile(id: number) {
@@ -84,5 +85,4 @@ export class AuthService {
             throw new HttpException('Gagal logout', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }

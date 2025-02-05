@@ -1,158 +1,228 @@
-DTO (**Data Transfer Object**) adalah **objek khusus** yang digunakan untuk **mengirim dan menerima data** di dalam API. DTO bertindak sebagai **lapisan validasi** dan memastikan bahwa data yang masuk atau keluar dari aplikasi sesuai dengan struktur yang diharapkan.  
+# 📌 **Dokumentasi Struktur Proyek NestJS**  
+
+Dokumentasi ini menjelaskan **jenis, konsep, dan fungsi design pattern** yang digunakan dalam proyek **Final NestJS**, serta **kelebihan dan fungsionalitas** singkat dari setiap folder.  
+
+## Full Structur Project
+```
+└── 📁Final Nest JS
+    └── 📁docs
+        └── 📁auth
+            └── AuthController.md
+            └── AuthService.md
+        └── challenge.png
+        └── 📁nestjs
+            └── dto.md
+            └── guard.md
+            └── interceptor.md
+            └── structure.md
+        └── 📁test
+            └── 📁jest
+                └── mock.md
+            └── README.md
+    └── 📁prisma
+        └── 📁migrations
+            └── 📁20250201133230_create_table_users
+                └── migration.sql
+            └── 📁20250201164458_modify_field_email_to_be_unique
+                └── migration.sql
+            └── 📁20250202060043_create_model_products_and_change_name_model_user_to_users
+                └── migration.sql
+            └── 📁20250202060545_adding_field_price_product
+                └── migration.sql
+            └── migration_lock.toml
+        └── schema.prisma
+    └── 📁src
+        └── app.controller.spec.ts
+        └── app.controller.ts
+        └── app.module.ts
+        └── app.service.ts
+        └── 📁common
+            └── authcookie.guard.ts
+            └── example.interceptor.ts
+            └── http-exception.filter.ts
+            └── response-api.dto.ts
+        └── main.ts
+        └── 📁modules
+            └── 📁auth
+                └── auth.controller.spec.ts
+                └── auth.controller.ts
+                └── auth.dto.ts
+                └── auth.module.ts
+                └── auth.service.ts
+            └── 📁prisma
+                └── prisma.module.ts
+                └── prisma.service.ts
+            └── 📁product
+                └── product.controller.spec.ts
+                └── product.controller.ts
+                └── product.entity.ts
+                └── product.module.ts
+                └── product.service.ts
+            └── 📁user
+                └── user.controller.ts
+                └── user.dto.ts
+                └── user.module.ts
+                └── user.service.ts
+    └── 📁tests
+        └── 📁jest
+            └── app.e2e-spec.ts
+            └── auth.e2e-spec.ts
+            └── jest-e2e.json
+        └── 📁playwright
+            └── auth.spec.ts
+    └── 📁views
+        └── hello.html
+        └── index.html
+        └── login.html
+        └── register.html
+    └── .env
+    └── .env.development
+    └── .env.test
+    └── .gitignore
+    └── eslint.config.mjs
+    └── nest-cli.json
+    └── package-lock.json
+    └── package.json
+    └── playwright.config.ts
+    └── README.md
+    └── tsconfig.build.json
+    └── tsconfig.json
+```
 
 ---
 
-## **Mengapa Menggunakan DTO di API?**  
-1. **Validasi Data**  
-   - Mencegah input yang tidak valid atau berbahaya masuk ke dalam sistem.  
-   - Bisa menggunakan **class-validator** untuk otomatis memvalidasi request.  
+## **🛠️ Design Pattern yang Digunakan**  
 
-2. **Meningkatkan Keamanan**  
-   - Mengontrol data yang bisa diterima oleh API dan menghindari input yang tidak diinginkan.  
+### 1️⃣ **Modular Monolith Architecture**  
+- Struktur ini membagi aplikasi menjadi **beberapa module**, masing-masing menangani fitur spesifik, seperti **auth**, **product**, dan **user**.  
+- Setiap module memiliki **controller, service, dan DTO**, sehingga **mudah diperluas dan dikelola**.  
 
-3. **Memisahkan Model Database dengan API**  
-   - **DTO ≠ Entity** → **DTO untuk API**, sedangkan **Entity untuk Database** (ORM seperti Prisma, TypeORM).  
-   - Ini membantu agar perubahan struktur database **tidak langsung berdampak ke API**.  
+### 2️⃣ **Dependency Injection (DI)**  
+- **NestJS menggunakan DI** untuk mengelola ketergantungan antara service dan repository.  
+- Contoh: `auth.service.ts` tidak membuat instance `PrismaService` secara langsung, melainkan mendapatkannya dari **DI Container**.  
 
-4. **Menjaga Konsistensi & Dokumentasi API**  
-   - Semua request dan response API memiliki **struktur yang jelas & konsisten**.  
+### 3️⃣ **Repository Pattern**  
+- Digunakan dalam `prisma.service.ts` untuk mengakses database.  
+- **Memisahkan logika bisnis dari akses database**, membuat kode lebih bersih dan terstruktur.  
 
----
-
-## **Bagaimana Konsep DTO di Project API?**
-### **Struktur DTO dalam Project API**
-Misalkan kita punya fitur **Product**, maka DTO bisa seperti ini:  
-
-```
-src/
-│── modules/
-│   ├── product/
-│   │   ├── product.controller.ts
-│   │   ├── product.service.ts
-│   │   ├── product.entity.ts
-│   │   ├── product.module.ts
-│   │   ├── dto/
-│   │   │   ├── create-product.dto.ts
-│   │   │   ├── update-product.dto.ts
-│── common/
-│   ├── guards/
-│   ├── filters/
-│── app.module.ts
-```
-
-### **Contoh Implementasi DTO**
-📌 **1. `create-product.dto.ts` (Validasi untuk Create Product)**
-```typescript
-import { IsNotEmpty, IsString, IsNumber, Min } from 'class-validator';
-
-export class CreateProductDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  @IsNotEmpty()
-  @IsString()
-  description: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  price: number;
-}
-```
-✅ **Fungsi DTO ini:**  
-- **`@IsNotEmpty()`** → Field tidak boleh kosong.  
-- **`@IsString()`** → Memastikan `name` dan `description` adalah string.  
-- **`@IsNumber()`** → Memastikan `price` adalah angka.  
-- **`@Min(0)`** → Harga tidak boleh negatif.  
+### 4️⃣ **Middleware & Interceptor Pattern**  
+- **Middleware** (`authcookie.guard.ts`) untuk memproses request sebelum masuk ke controller.  
+- **Interceptor** (`example.interceptor.ts`) untuk memodifikasi response sebelum dikirim ke client.  
 
 ---
 
-📌 **2. `update-product.dto.ts` (Validasi untuk Update Product)**
-```typescript
-import { IsOptional, IsString, IsNumber, Min } from 'class-validator';
+## **📂 Penjelasan Tiap Folder**  
 
-export class UpdateProductDto {
-  @IsOptional()
-  @IsString()
-  name?: string;
+### 📁 `docs/` – Dokumentasi Proyek  
+> Berisi catatan tentang berbagai aspek proyek, termasuk **auth, DTO, guard, interceptor**, dan **struktur proyek**.  
 
-  @IsOptional()
-  @IsString()
-  description?: string;
+- 📁 `auth/` – Dokumentasi **AuthController** dan **AuthService**.  
+- 📁 `nestjs/` – Dokumentasi tentang berbagai fitur **NestJS**, seperti **DTO, Guard, dan Interceptor**.  
+- 📁 `test/` – Dokumentasi terkait **unit test dan e2e test**.  
 
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  price?: number;
-}
-```
-✅ **Fungsi DTO ini:**  
-- **`@IsOptional()`** → Field boleh kosong.  
-- **Hanya mengupdate field yang diberikan** (tanpa memaksa semua field harus diisi).  
+📌 **Kelebihan:**  
+✅ Memudahkan pengembang dalam memahami dan mengembangkan proyek.  
+✅ Dokumentasi **terorganisir** berdasarkan fitur dan komponen.  
 
 ---
 
-📌 **3. Menggunakan DTO di Controller**
-```typescript
-import { Controller, Post, Body, Put, Param } from '@nestjs/common';
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+### 📁 `prisma/` – Database Management  
+> Berisi skema database dan file migrasi untuk **PostgreSQL** menggunakan **Prisma ORM**.  
 
-@Controller('products')
-export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+- 📁 `migrations/` – Berisi **script migrasi database** untuk melacak perubahan struktur tabel.  
+- `schema.prisma` – **Definisi skema database**, termasuk model **users** dan **products**.  
 
-  @Post()
-  async create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
-  }
-
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(id, updateProductDto);
-  }
-}
-```
-✅ **Fungsi Controller ini:**  
-- Menggunakan **DTO sebagai tipe parameter** di `@Body()` untuk validasi otomatis.  
-- **Tidak perlu validasi manual di dalam service**, karena **NestJS akan otomatis menolak request yang tidak valid**.  
+📌 **Kelebihan:**  
+✅ **Database Schema as Code** – Semua perubahan database terdokumentasi dan bisa di-rollback.  
+✅ **Mudah digunakan dengan TypeScript** berkat integrasi Prisma.  
 
 ---
 
-📌 **4. Menggunakan DTO di Service**
-```typescript
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+### 📁 `src/` – **Source Code Aplikasi**  
+> Folder utama yang berisi **logika aplikasi**, termasuk controller, service, DTO, dan middleware.  
 
-@Injectable()
-export class ProductService {
-  private products = [];
+#### 📁 `common/` – **Utility dan Middleware**  
+- `authcookie.guard.ts` – Guard untuk **autentikasi** menggunakan cookie.  
+- `example.interceptor.ts` – Interceptor untuk **memodifikasi response API**.  
+- `http-exception.filter.ts` – Filter untuk menangani **error global**.  
+- `response-api.dto.ts` – Data Transfer Object (DTO) untuk **struktur response API**.  
 
-  create(createProductDto: CreateProductDto) {
-    const newProduct = { id: Date.now(), ...createProductDto };
-    this.products.push(newProduct);
-    return newProduct;
-  }
+📌 **Kelebihan:**  
+✅ **Reusable components** – Middleware dan utility bisa digunakan di seluruh aplikasi.  
+✅ **Centralized error handling** – **Memudahkan debugging** dan meningkatkan keamanan.  
 
-  update(id: string, updateProductDto: UpdateProductDto) {
-    const index = this.products.findIndex((p) => p.id === Number(id));
-    if (index === -1) return { message: 'Product not found' };
+#### 📁 `modules/` – **Modular Structure**  
+> Setiap module adalah **unit independen**, yang memiliki controller, service, DTO, dan konfigurasi sendiri.  
 
-    this.products[index] = { ...this.products[index], ...updateProductDto };
-    return this.products[index];
-  }
-}
-```
-✅ **Fungsi Service ini:**  
-- **DTO digunakan sebagai parameter** untuk memastikan data sudah divalidasi sebelum masuk ke database.  
-- **Tidak perlu lagi memeriksa apakah `name`, `description`, dan `price` valid**, karena **DTO sudah menangani itu**.  
+📌 **Modul yang ada:**  
+1. 📁 `auth/` – **Manajemen autentikasi pengguna**.  
+   - `auth.controller.ts` – Menangani request dari **client**.  
+   - `auth.service.ts` – Logika autentikasi dan JWT.  
+   - `auth.dto.ts` – DTO untuk validasi input.  
+2. 📁 `prisma/` – **Database Service**.  
+   - `prisma.service.ts` – Menyediakan akses ke database.  
+3. 📁 `product/` – **Manajemen produk**.  
+   - `product.controller.ts` – Menangani request **produk**.  
+   - `product.service.ts` – Logika bisnis produk.  
+4. 📁 `user/` – **Manajemen pengguna**.  
+   - `user.controller.ts` – Menangani request pengguna.  
+   - `user.service.ts` – Logika bisnis pengguna.  
+
+📌 **Kelebihan:**  
+✅ **Mudah dikembangkan** – Modul dapat ditambahkan tanpa mengganggu kode lain.  
+✅ **High Cohesion & Low Coupling** – Modul saling **terpisah**, sehingga lebih terstruktur.  
 
 ---
 
-## **Kesimpulan**
-✔ **DTO adalah cara terbaik untuk menangani validasi dan struktur data di API NestJS.**  
-✔ **Menggunakan DTO membuat kode lebih bersih, aman, dan mudah dipahami.**  
-✔ **NestJS secara otomatis memvalidasi request menggunakan class-validator dengan DTO.**  
+### 📁 `tests/` – **Unit & Integration Testing**  
+> Berisi **unit test dan e2e test** untuk menguji fungsionalitas aplikasi.  
+
+#### 📁 `jest/` – **Unit & E2E Test dengan Jest**  
+- `app.e2e-spec.ts` – **End-to-end testing** untuk aplikasi utama.  
+- `auth.e2e-spec.ts` – **End-to-end testing** untuk autentikasi.  
+- `jest-e2e.json` – Konfigurasi **Jest** untuk E2E test.  
+
+#### 📁 `playwright/` – **Testing UI dengan Playwright**  
+- `auth.spec.ts` – **Test autentikasi menggunakan Playwright**.  
+
+📌 **Kelebihan:**  
+✅ **Meningkatkan Keamanan** – Menghindari bug sebelum **deployment**.  
+✅ **Automated Testing** – Memastikan **endpoint bekerja dengan baik**.  
+
+---
+
+### 📁 `views/` – **Halaman HTML untuk Frontend**  
+> Berisi file **HTML statis** untuk tampilan sederhana.  
+
+- `index.html` – Halaman utama.  
+- `login.html` – Halaman login.  
+- `register.html` – Halaman registrasi.  
+
+📌 **Kelebihan:**  
+✅ **Mempermudah debugging** jika ingin menguji endpoint tanpa frontend framework.  
+
+---
+
+### 📁 **File Konfigurasi Utama**  
+> File yang digunakan untuk konfigurasi aplikasi.  
+
+- `.env` – Konfigurasi **environment variables**.  
+- `nest-cli.json` – Konfigurasi **NestJS CLI**.  
+- `package.json` – **Dependency management** untuk proyek.  
+- `tsconfig.json` – Konfigurasi **TypeScript**.  
+- `eslint.config.mjs` – Konfigurasi **ESLint** untuk standarisasi kode.  
+
+📌 **Kelebihan:**  
+✅ **Memudahkan pengaturan environment dan dependency**.  
+✅ **Membantu menjaga kualitas kode dengan linting**.  
+
+---
+
+## **🔍 Kesimpulan**  
+Struktur proyek ini **modular dan terorganisir**, dengan beberapa **design pattern** utama:  
+- **Modular Monolith** → Memudahkan pengelolaan fitur secara independen.  
+- **Dependency Injection** → Mengurangi coupling dan meningkatkan skalabilitas.  
+- **Repository Pattern** → Memisahkan logika bisnis dari database.  
+- **Middleware & Interceptor** → Untuk validasi dan manipulasi request/response.  
+
+Dengan struktur ini, proyek **mudah dikembangkan, diperluas, dan dikelola**, baik untuk **tim kecil maupun besar** 🚀.

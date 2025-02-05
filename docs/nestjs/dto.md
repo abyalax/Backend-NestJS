@@ -1,262 +1,120 @@
-### **📌 Penggunaan DTO di API NestJS**
-DTO (**Data Transfer Object**) digunakan dalam API NestJS untuk **memvalidasi dan mentransformasi data request** sebelum diproses oleh service. DTO biasanya digunakan dalam **Controller** saat menerima request dari client.
+# 📌 Dokumentasi: Data Transfer Object (DTO) di NestJS  
+
+## 🎯 Tujuan  
+DTO (**Data Transfer Object**) digunakan untuk memastikan bahwa data yang masuk ke dalam aplikasi NestJS telah **divalidasi** sebelum diteruskan ke logika bisnis.  
 
 ---
 
-## **1️⃣ Contoh Implementasi DTO di API NestJS**
-Kita akan membuat **API sederhana** untuk mengelola produk dengan:
-- **DTO untuk validasi request API** (`POST /products`)
-- **Service untuk menyimpan dan mengambil data**
-- **Controller untuk menangani request API**
+## 📦 Instalasi  
+Sebelum menggunakan DTO, pastikan Anda telah menginstal **class-validator** dan **class-transformer**:  
 
-📌 **Struktur Folder:**
-```
-/src
- ├── /products
- │   ├── dto
- │   │   ├── create-product.dto.ts
- │   │   ├── update-product.dto.ts
- │   ├── product.controller.ts
- │   ├── product.service.ts
- │   ├── product.module.ts
-```
-
----
-
-### **2️⃣ Buat DTO untuk Validasi Request**
-NestJS menggunakan `class-validator` untuk validasi DTO.
-
-📌 **Instalasi class-validator & class-transformer**
-```bash
+```sh
 npm install class-validator class-transformer
 ```
 
-📌 **`create-product.dto.ts` (Validasi Data untuk Create Product)**
-```typescript
-import { IsNotEmpty, IsString, IsNumber, Min } from 'class-validator';
+---
 
-export class CreateProductDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
+## 🏗️ Implementasi DTO  
 
-  @IsNotEmpty()
-  @IsString()
-  description: string;
+### 1️⃣ `LoginDTO`  
+Digunakan untuk validasi saat user melakukan login.  
 
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  price: number;
+```ts
+import { IsNotEmpty, IsEmail, IsString, MinLength } from 'class-validator';
+
+export class LoginDTO {
+    @IsNotEmpty()
+    @IsEmail({}, { message: 'Please enter correct email' })
+    email: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @MinLength(6, { message: 'Password must be at least 6 characters long' })
+    password: string;
+
+    access_token?: string;
 }
 ```
-✅ **Fungsi DTO ini:**  
-- **Memastikan `name` dan `description` adalah string**  
-- **Memastikan `price` adalah angka & tidak negatif**  
-- **Menolak request jika ada field kosong**  
+
+**Penjelasan:**  
+- `@IsNotEmpty()` → Field tidak boleh kosong.  
+- `@IsEmail({}, { message: 'Please enter correct email' })` → Memvalidasi format email.  
+- `@IsString()` → Memastikan nilai berupa string.  
+- `@MinLength(6, { message: 'Password must be at least 6 characters long' })` → Password minimal 6 karakter.  
+- `access_token` bersifat opsional (`?`) dan tidak memiliki validasi karena tidak selalu diperlukan.  
 
 ---
 
-📌 **`update-product.dto.ts` (Validasi Data untuk Update Product)**
-```typescript
-import { IsString, IsNumber, Min, IsOptional } from 'class-validator';
+### 2️⃣ `RegisterDTO`  
+Digunakan untuk validasi saat user melakukan registrasi.  
 
-export class UpdateProductDto {
-  @IsOptional()
-  @IsString()
-  name?: string;
+```ts
+import { IsNotEmpty, IsEmail, IsString, MinLength } from 'class-validator';
 
-  @IsOptional()
-  @IsString()
-  description?: string;
+export class RegisterDTO {
+    @IsNotEmpty()
+    @IsString()
+    readonly name: string;
 
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  price?: number;
+    @IsNotEmpty()
+    @IsEmail({}, { message: 'Please enter correct email' })
+    readonly email: string;
+
+    @IsNotEmpty()
+    @IsString()
+    @MinLength(6, { message: 'Password must be at least 6 characters long' })
+    readonly password: string;
 }
 ```
-✅ **Update DTO menggunakan `@IsOptional()` untuk memungkinkan update sebagian**.
+
+**Perbedaan dengan `LoginDTO`:**  
+- Memiliki **`name`** sebagai field tambahan untuk nama pengguna.  
+- Semua properti menggunakan `readonly`, yang berarti tidak bisa diubah setelah DTO dibuat.  
 
 ---
 
-### **3️⃣ Menggunakan DTO di Controller**
-📌 **`product.controller.ts`**
-```typescript
-import { Controller, Get, Post, Body, Param, Put } from '@nestjs/common';
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+## 🛠️ Cara Menggunakan DTO dalam Controller  
 
-@Controller('products')
-export class ProductController {
-  constructor(private readonly productService: ProductService) {}
+Gunakan DTO dalam controller dengan **Pipes** untuk validasi otomatis.  
 
-  // Endpoint untuk menambahkan produk
-  @Post()
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
-  }
+```ts
+import { Body, Controller, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { LoginDTO, RegisterDTO } from '../dto/auth.dto';
 
-  // Endpoint untuk mengambil semua produk
-  @Get()
-  findAll() {
-    return this.productService.getAll();
-  }
-
-  // Endpoint untuk update produk
-  @Put(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(Number(id), updateProductDto);
-  }
-}
-```
-✅ **Di sini DTO digunakan untuk validasi input saat API menerima request.**  
-- `@Body() createProductDto: CreateProductDto` → Memastikan request valid saat `POST /products`.  
-- `@Body() updateProductDto: UpdateProductDto` → Memastikan request valid saat `PUT /products/:id`.  
-
----
-
-### **4️⃣ Service untuk Mengelola Data**
-📌 **`product.service.ts`**
-```typescript
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
-
-@Injectable()
-export class ProductService {
-  private products = [];
-
-  create(createProductDto: CreateProductDto) {
-    const newProduct = { id: Date.now(), ...createProductDto };
-    this.products.push(newProduct);
-    return newProduct;
-  }
-
-  getAll() {
-    return this.products;
-  }
-
-  update(id: number, updateProductDto: UpdateProductDto) {
-    const productIndex = this.products.findIndex((p) => p.id === id);
-    if (productIndex === -1) {
-      return { message: 'Product not found' };
+@Controller('auth')
+export class AuthController {
+    @Post('login')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    login(@Body() loginDto: LoginDTO) {
+        return {
+            message: 'Login success',
+            email: loginDto.email,
+        };
     }
 
-    this.products[productIndex] = { ...this.products[productIndex], ...updateProductDto };
-    return this.products[productIndex];
-  }
+    @Post('register')
+    @UsePipes(new ValidationPipe({ whitelist: true }))
+    register(@Body() registerDto: RegisterDTO) {
+        return {
+            message: 'Register success',
+            name: registerDto.name,
+        };
+    }
 }
 ```
-✅ **Service ini menyimpan dan mengupdate data produk.**  
-- **Menggunakan DTO sebagai parameter function** → memastikan data sudah tervalidasi di Controller.  
-- **Tidak perlu validasi ulang di service** karena sudah dilakukan di DTO.  
+
+**Penjelasan:**  
+- `@Body()` → Mengambil data dari request body dan memetakannya ke DTO.  
+- `@UsePipes(new ValidationPipe({ whitelist: true }))`  
+  - **`ValidationPipe`** akan otomatis memvalidasi input sesuai DTO.  
+  - **`whitelist: true`** akan menghapus properti yang tidak didefinisikan dalam DTO dari request body.  
 
 ---
 
-### **5️⃣ Register Module**
-📌 **`product.module.ts`**
-```typescript
-import { Module } from '@nestjs/common';
-import { ProductController } from './product.controller';
-import { ProductService } from './product.service';
+## 📋 Kesimpulan  
+- **DTO** digunakan untuk validasi data sebelum diproses di controller.  
+- **class-validator** memungkinkan validasi otomatis berdasarkan decorator.  
+- **ValidationPipe** digunakan untuk memvalidasi request agar sesuai dengan DTO.  
+- Menggunakan DTO meningkatkan **keamanan** dan **konsistensi** data dalam aplikasi.  
 
-@Module({
-  controllers: [ProductController],
-  providers: [ProductService],
-})
-export class ProductModule {}
-```
-✅ **Module ini menghubungkan Controller dan Service**.  
-
----
-
-## **🚀 Hasil API Endpoint dengan DTO**
-### **1️⃣ POST /products (Menambahkan Produk)**
-📌 **Request Body:**
-```json
-{
-  "name": "Laptop",
-  "description": "Laptop gaming high-end",
-  "price": 2000
-}
-```
-✅ **Response:**
-```json
-{
-  "id": 1700000000000,
-  "name": "Laptop",
-  "description": "Laptop gaming high-end",
-  "price": 2000
-}
-```
-
----
-
-### **2️⃣ POST /products (Data Tidak Valid)**
-📌 **Request Body (price kosong):**
-```json
-{
-  "name": "Mouse",
-  "description": "Mouse wireless"
-}
-```
-❌ **Response (Validasi DTO Gagal):**
-```json
-{
-  "statusCode": 400,
-  "message": ["price must be a number", "price should not be empty"],
-  "error": "Bad Request"
-}
-```
-✅ **DTO otomatis memvalidasi request tanpa perlu kode tambahan.**  
-
----
-
-### **3️⃣ GET /products (Ambil Semua Produk)**
-📌 **Response:**
-```json
-[
-  {
-    "id": 1700000000000,
-    "name": "Laptop",
-    "description": "Laptop gaming high-end",
-    "price": 2000
-  }
-]
-```
-
----
-
-### **4️⃣ PUT /products/:id (Update Produk)**
-📌 **Request Body:**
-```json
-{
-  "price": 1800
-}
-```
-✅ **Response:**
-```json
-{
-  "id": 1700000000000,
-  "name": "Laptop",
-  "description": "Laptop gaming high-end",
-  "price": 1800
-}
-```
-✅ **Menggunakan `@IsOptional()` di `update-product.dto.ts`, sehingga bisa update sebagian data**.
-
----
-
-## **🎯 Kesimpulan**
-✔ **DTO digunakan dalam Controller untuk validasi request API sebelum masuk ke Service**.  
-✔ **DTO mencegah request dengan data tidak valid (misalnya price negatif atau kosong)**.  
-✔ **Menggunakan `class-validator`, DTO bisa mempermudah validasi tanpa perlu manual check**.  
-✔ **Lebih aman dibanding langsung menerima `@Body()` sebagai objek tanpa validasi**.  
-
-💡 **Best practice di NestJS:**  
-- **Gunakan DTO (`class`) untuk validasi request API**  
-- **Gunakan Interface untuk return type dari service atau database**  
-
-🚀 **Dengan DTO, API kita jadi lebih aman dan lebih mudah dikelola!**
+Sekarang, semua request akan **divalidasi secara otomatis** sebelum diproses lebih lanjut 🚀.

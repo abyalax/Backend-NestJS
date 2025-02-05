@@ -26,16 +26,3 @@ export class RegisterDTO {
     @MinLength(6)
     readonly password: string;
 }
-
-// export class LoginResponseDTO {
-//     @IsNotEmpty()
-//     @IsString()
-//     access_token: string;
-//     user: UserDTO;
-// }
-
-export class CookieAccessTokenDTO {
-    @IsNotEmpty()
-    @IsString()
-    access_token: unknown;
-}
