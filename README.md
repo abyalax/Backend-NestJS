@@ -1,4 +1,4 @@
-
+## Read The Documentation
 **Table Of Content**
 - [Rest API with Nest framework TypeScript.](#rest-api-with-nest-framework-typescript)
     - [1. Buatlah simple rest api app dengan nestjs typescript dengan kriteria sebagai berikut:](#1-buatlah-simple-rest-api-app-dengan-nestjs-typescript-dengan-kriteria-sebagai-berikut)
@@ -6,21 +6,23 @@
   - [Pattern Project](#pattern-project)
 - [📌 **Dokumentasi Struktur Proyek NestJS**](#-dokumentasi-struktur-proyek-nestjs)
   - [Full Structur Project](#full-structur-project)
-  - [**🛠️ Design Pattern yang Digunakan**](#️-design-pattern-yang-digunakan)
-    - [1️⃣ **Modular Monolith Architecture**](#1️⃣-modular-monolith-architecture)
+  - [**⚒️ Design Pattern yang Digunakan**](#️-design-pattern-yang-digunakan)
+    - [1️⃣ **Design Pattern yang digunakan berdasarkan struktur folder**](#1️⃣-design-pattern-yang-digunakan-berdasarkan-struktur-folder)
     - [2️⃣ **Dependency Injection (DI)**](#2️⃣-dependency-injection-di)
-    - [3️⃣ **Repository Pattern**](#3️⃣-repository-pattern)
-    - [4️⃣ **Middleware \& Interceptor Pattern**](#4️⃣-middleware--interceptor-pattern)
+    - [3️⃣ **Middleware**](#3️⃣-middleware)
+    - [4️⃣ **Interceptor**](#4️⃣-interceptor)
+    - [5️⃣ **Guard**](#5️⃣-guard)
+    - [6️⃣ **Filter**](#6️⃣-filter)
+    - [7️⃣ **Validation**](#7️⃣-validation)
+    - [8️⃣ **Pipe**](#8️⃣-pipe)
   - [**📂 Penjelasan Tiap Folder**](#-penjelasan-tiap-folder)
-    - [📁 `docs/` – Dokumentasi Proyek](#-docs--dokumentasi-proyek)
-    - [📁 `prisma/` – Database Management](#-prisma--database-management)
-    - [📁 `src/` – **Source Code Aplikasi**](#-src--source-code-aplikasi)
-      - [📁 `common/` – **Utility dan Middleware**](#-common--utility-dan-middleware)
-      - [📁 `modules/` – **Modular Structure**](#-modules--modular-structure)
-    - [📁 `tests/` – **Unit \& Integration Testing**](#-tests--unit--integration-testing)
-      - [📁 `jest/` – **Unit \& E2E Test dengan Jest**](#-jest--unit--e2e-test-dengan-jest)
-      - [📁 `playwright/` – **Testing UI dengan Playwright**](#-playwright--testing-ui-dengan-playwright)
-    - [📁 `views/` – **Halaman HTML untuk Frontend**](#-views--halaman-html-untuk-frontend)
+    - [📁 **.github/workflows/** – CI/CD Pipeline](#-githubworkflows--cicd-pipeline)
+    - [📁 **prisma/** – Database Management](#-prisma--database-management)
+    - [📁 **src/** – **Source Code Aplikasi**](#-src--source-code-aplikasi)
+      - [📁 **common/** – Modul yang digunakan di seluruh aplikasi](#-common--modul-yang-digunakan-di-seluruh-aplikasi)
+      - [📁 **modules/** – Modular Structure](#-modules--modular-structure)
+    - [📁 **tests/** – Unit \& Integration Testing](#-tests--unit--integration-testing)
+    - [📁 **views/** – Halaman HTML untuk Frontend](#-views--halaman-html-untuk-frontend)
     - [📁 **File Konfigurasi Utama**](#-file-konfigurasi-utama)
   - [**🔍 Kesimpulan**](#-kesimpulan)
   - [Project setup](#project-setup)
@@ -28,7 +30,6 @@
   - [Run tests](#run-tests)
   - [Playwright](#playwright)
     - [📥 1. Instalasi Playwright](#-1-instalasi-playwright)
-    - [🚀 2. Menjalankan Test](#-2-menjalankan-test)
     - [🛠 3. Struktur Direktori tests](#-3-struktur-direktori-tests)
     - [🎯 4. Menjalankan Test dengan Reporter](#-4-menjalankan-test-dengan-reporter)
     - [🎭 5. Debugging](#-5-debugging)
@@ -38,6 +39,7 @@
   - [Resources](#resources)
   - [Stay in touch](#stay-in-touch)
   - [License](#license)
+---
 
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
@@ -77,7 +79,9 @@
 ## Full Structur Project
 ```
 └── 📁Final Nest JS
-    └── 📁docs
+    └── 📁.github
+        └── 📁workflows
+            └── playwright.yml
     └── 📁prisma
     └── 📁src
         └── app.controller.spec.ts
@@ -85,39 +89,52 @@
         └── app.module.ts
         └── app.service.ts
         └── 📁common
-            └── authcookie.guard.ts
-            └── example.interceptor.ts
-            └── http-exception.filter.ts
-            └── response-api.dto.ts
+            └── 📁auth
+                └── auth.middleware.spec.ts
+                └── auth.middleware.ts
+            └── 📁log
+                └── log.middleware.spec.ts
+                └── log.middleware.ts
+            └── 📁prisma
+                └── prisma.module.ts
+                └── prisma.service.spec.ts
+                └── prisma.service.ts
+            └── 📁response
+                └── response.interceptor.spec.ts
+                └── response.interceptor.ts
+                └── response.spec.ts
+                └── response.ts
+            └── 📁role
+                └── role.decorator.ts
+                └── role.guard.spec.ts
+                └── role.guard.ts
+            └── 📁validation
+                └── validation.decorator.ts
+                └── validation.filter.spec.ts
+                └── validation.filter.ts
+                └── validation.module.ts
+                └── validation.pipe.spec.ts
+                └── validation.pipe.ts
+                └── validation.service.spec.ts
+                └── validation.service.ts
         └── main.ts
+        └── 📁models
+            └── login.model.ts
         └── 📁modules
             └── 📁auth
                 └── auth.controller.spec.ts
                 └── auth.controller.ts
-                └── auth.dto.ts
+                └── auth.interface.ts
                 └── auth.module.ts
+                └── auth.service.spec.ts
                 └── auth.service.ts
-            └── 📁prisma
-                └── prisma.module.ts
-                └── prisma.service.ts
-            └── 📁product
-                └── product.controller.spec.ts
-                └── product.controller.ts
-                └── product.entity.ts
-                └── product.module.ts
-                └── product.service.ts
             └── 📁user
+                └── user.controller.spec.ts
                 └── user.controller.ts
-                └── user.dto.ts
                 └── user.module.ts
+                └── user.service.spec.ts
                 └── user.service.ts
     └── 📁tests
-        └── 📁jest
-            └── app.e2e-spec.ts
-            └── auth.e2e-spec.ts
-            └── jest-e2e.json
-        └── 📁playwright
-            └── auth.spec.ts
     └── 📁views
         └── hello.html
         └── index.html
@@ -125,6 +142,8 @@
         └── register.html
     └── .env
     └── .env.development
+    └── .env.example
+    └── .env.production
     └── .env.test
     └── .gitignore
     └── eslint.config.mjs
@@ -139,141 +158,132 @@
 
 ---
 
-## **🛠️ Design Pattern yang Digunakan**  
+## **⚒️ Design Pattern yang Digunakan**  
 
-### 1️⃣ **Modular Monolith Architecture**  
-- Struktur ini membagi aplikasi menjadi **beberapa module**, masing-masing menangani fitur spesifik, seperti **auth**, **product**, dan **user**.  
-- Setiap module memiliki **controller, service, dan DTO**, sehingga **mudah diperluas dan dikelola**.  
+### 1️⃣ **Design Pattern yang digunakan berdasarkan struktur folder**    
+Struktur proyek menggunakan pola **Modular Architecture**, yang membagi fitur ke dalam module independen. Setiap module memiliki controller, service, dan spesifikasinya sendiri.
 
-### 2️⃣ **Dependency Injection (DI)**  
-- **NestJS menggunakan DI** untuk mengelola ketergantungan antara service dan repository.  
-- Contoh: `auth.service.ts` tidak membuat instance `PrismaService` secara langsung, melainkan mendapatkannya dari **DI Container**.  
+### 2️⃣ **Dependency Injection (DI)**     
+Menggunakan **NestJS Dependency Injection (DI)** untuk mengelola dependensi dan meningkatkan modularitas serta maintainability kode.
 
-### 3️⃣ **Repository Pattern**  
-- Digunakan dalam `prisma.service.ts` untuk mengakses database.  
-- **Memisahkan logika bisnis dari akses database**, membuat kode lebih bersih dan terstruktur.  
+### 3️⃣ **Middleware**  
+Middleware digunakan untuk menangani request sebelum mencapai controller. Contoh middleware yang digunakan:
+- **auth.middleware.ts** – Menangani otentikasi pengguna.
+- **log.middleware.ts** – Logging request dan response.
 
-### 4️⃣ **Middleware & Interceptor Pattern**  
-- **Middleware** (`authcookie.guard.ts`) untuk memproses request sebelum masuk ke controller.  
-- **Interceptor** (`example.interceptor.ts`) untuk memodifikasi response sebelum dikirim ke client.  
+### 4️⃣ **Interceptor**  
+Digunakan untuk memodifikasi request atau response sebelum dikirim ke client. Contoh:
+- **response.interceptor.ts** – Menangani response standar aplikasi.
+
+### 5️⃣ **Guard**  
+Guard digunakan untuk mengatur otorisasi pengguna berdasarkan role:
+- **role.guard.ts** – Memeriksa apakah pengguna memiliki akses ke endpoint tertentu.
+
+### 6️⃣ **Filter**  
+Digunakan untuk menangani error secara terpusat:
+- **validation.filter.ts** – Menangani validasi request.
+
+### 7️⃣ **Validation**  
+Menggunakan **Validation Decorators** dan **Pipes** untuk validasi request:
+- **validation.decorator.ts** – Custom decorator untuk validasi input.
+- **validation.pipe.ts** – Memproses data sebelum dikirim ke controller.
+
+### 8️⃣ **Pipe**  
+Digunakan untuk memanipulasi data sebelum diproses oleh handler.
+- **validation.pipe.ts** – Memvalidasi dan mengubah data sesuai aturan tertentu.
 
 ---
 
 ## **📂 Penjelasan Tiap Folder**  
 
-### 📁 `docs/` – Dokumentasi Proyek  
-> Berisi catatan tentang berbagai aspek proyek, termasuk **auth, DTO, guard, interceptor**, dan **struktur proyek**.  
-
-- 📁 `auth/` – Dokumentasi **AuthController** dan **AuthService**.  
-- 📁 `nestjs/` – Dokumentasi tentang berbagai fitur **NestJS**, seperti **DTO, Guard, dan Interceptor**.  
-- 📁 `test/` – Dokumentasi terkait **unit test dan e2e test**.  
-
-📌 **Kelebihan:**  
-✅ Memudahkan pengembang dalam memahami dan mengembangkan proyek.  
-✅ Dokumentasi **terorganisir** berdasarkan fitur dan komponen.  
+### 📁 **.github/workflows/** – CI/CD Pipeline
+> Berisi workflow untuk otomatisasi pengujian menggunakan **Playwright**.
 
 ---
 
-### 📁 `prisma/` – Database Management  
-> Berisi skema database dan file migrasi untuk **PostgreSQL** menggunakan **Prisma ORM**.  
+### 📁 **prisma/** – Database Management  
+> Menggunakan **Prisma ORM** untuk pengelolaan database PostgreSQL.
 
-- 📁 `migrations/` – Berisi **script migrasi database** untuk melacak perubahan struktur tabel.  
-- `schema.prisma` – **Definisi skema database**, termasuk model **users** dan **products**.  
+- **schema.prisma** – Definisi skema database.
+- **migrations/** – Berisi script migrasi database.
 
 📌 **Kelebihan:**  
-✅ **Database Schema as Code** – Semua perubahan database terdokumentasi dan bisa di-rollback.  
-✅ **Mudah digunakan dengan TypeScript** berkat integrasi Prisma.  
+✅ **Database Schema as Code** – Perubahan database terdokumentasi dan dapat di-rollback.  
+✅ **TypeScript Integration** – Memudahkan penanganan query database.  
 
 ---
 
-### 📁 `src/` – **Source Code Aplikasi**  
-> Folder utama yang berisi **logika aplikasi**, termasuk controller, service, DTO, dan middleware.  
+### 📁 **src/** – **Source Code Aplikasi**  
+> Folder utama yang berisi logika aplikasi.
 
-#### 📁 `common/` – **Utility dan Middleware**  
-- `authcookie.guard.ts` – Guard untuk **autentikasi** menggunakan cookie.  
-- `example.interceptor.ts` – Interceptor untuk **memodifikasi response API**.  
-- `http-exception.filter.ts` – Filter untuk menangani **error global**.  
-- `response-api.dto.ts` – Data Transfer Object (DTO) untuk **struktur response API**.  
+#### 📁 **common/** – Modul yang digunakan di seluruh aplikasi  
+Berisi middleware, interceptor, filter, dan utility lainnya.
+- 📁 **auth/** – Middleware otentikasi.
+- 📁 **log/** – Middleware untuk logging request.
+- 📁 **prisma/** – Service untuk database.
+- 📁 **response/** – Interceptor untuk standar response.
+- 📁 **role/** – Guard untuk role-based access.
+- 📁 **validation/** – Validasi input request.
 
 📌 **Kelebihan:**  
-✅ **Reusable components** – Middleware dan utility bisa digunakan di seluruh aplikasi.  
-✅ **Centralized error handling** – **Memudahkan debugging** dan meningkatkan keamanan.  
+✅ **Reusable components** – Middleware dan utility dapat digunakan di seluruh aplikasi.  
+✅ **Centralized error handling** – Memudahkan debugging dan meningkatkan keamanan.  
 
-#### 📁 `modules/` – **Modular Structure**  
-> Setiap module adalah **unit independen**, yang memiliki controller, service, DTO, dan konfigurasi sendiri.  
+#### 📁 **modules/** – Modular Structure  
+> Setiap module memiliki controller, service, dan spesifikasinya sendiri.
 
 📌 **Modul yang ada:**  
-1. 📁 `auth/` – **Manajemen autentikasi pengguna**.  
-   - `auth.controller.ts` – Menangani request dari **client**.  
-   - `auth.service.ts` – Logika autentikasi dan JWT.  
-   - `auth.dto.ts` – DTO untuk validasi input.  
-2. 📁 `prisma/` – **Database Service**.  
-   - `prisma.service.ts` – Menyediakan akses ke database.  
-3. 📁 `product/` – **Manajemen produk**.  
-   - `product.controller.ts` – Menangani request **produk**.  
-   - `product.service.ts` – Logika bisnis produk.  
-4. 📁 `user/` – **Manajemen pengguna**.  
-   - `user.controller.ts` – Menangani request pengguna.  
-   - `user.service.ts` – Logika bisnis pengguna.  
+1. 📁 **auth/** – Manajemen autentikasi pengguna.
+   - **auth.controller.ts** – Menangani request dari client.
+   - **auth.service.ts** – Logika autentikasi.
+2. 📁 **user/** – Manajemen pengguna.
+   - **user.controller.ts** – Menangani request pengguna.
+   - **user.service.ts** – Logika pengguna.
 
 📌 **Kelebihan:**  
-✅ **Mudah dikembangkan** – Modul dapat ditambahkan tanpa mengganggu kode lain.  
-✅ **High Cohesion & Low Coupling** – Modul saling **terpisah**, sehingga lebih terstruktur.  
+✅ **Modular Architecture** – Setiap fitur terpisah dalam module.
+✅ **High Cohesion & Low Coupling** – Mudah dikembangkan tanpa mempengaruhi fitur lain.
 
 ---
 
-### 📁 `tests/` – **Unit & Integration Testing**  
-> Berisi **unit test dan e2e test** untuk menguji fungsionalitas aplikasi.  
-
-#### 📁 `jest/` – **Unit & E2E Test dengan Jest**  
-- `app.e2e-spec.ts` – **End-to-end testing** untuk aplikasi utama.  
-- `auth.e2e-spec.ts` – **End-to-end testing** untuk autentikasi.  
-- `jest-e2e.json` – Konfigurasi **Jest** untuk E2E test.  
-
-#### 📁 `playwright/` – **Testing UI dengan Playwright**  
-- `auth.spec.ts` – **Test autentikasi menggunakan Playwright**.  
+### 📁 **tests/** – Unit & Integration Testing  
+> Berisi unit test dan e2e test untuk menguji fungsionalitas aplikasi.
 
 📌 **Kelebihan:**  
-✅ **Meningkatkan Keamanan** – Menghindari bug sebelum **deployment**.  
-✅ **Automated Testing** – Memastikan **endpoint bekerja dengan baik**.  
+✅ **Mencegah regresi** – Memastikan fitur tetap bekerja setelah perubahan kode.
+✅ **Automated Testing** – Mempercepat pengujian dengan CI/CD.
 
 ---
 
-### 📁 `views/` – **Halaman HTML untuk Frontend**  
-> Berisi file **HTML statis** untuk tampilan sederhana.  
-
-- `index.html` – Halaman utama.  
-- `login.html` – Halaman login.  
-- `register.html` – Halaman registrasi.  
+### 📁 **views/** – Halaman HTML untuk Frontend  
+> Berisi file **HTML statis** untuk tampilan sederhana.
 
 📌 **Kelebihan:**  
-✅ **Mempermudah debugging** jika ingin menguji endpoint tanpa frontend framework.  
+✅ **Render cepat** – Tidak memerlukan rendering dari backend.
+✅ **Dapat digunakan untuk halaman fallback sederhana.**
 
 ---
 
 ### 📁 **File Konfigurasi Utama**  
-> File yang digunakan untuk konfigurasi aplikasi.  
+> File yang digunakan untuk konfigurasi aplikasi.
 
-- `.env` – Konfigurasi **environment variables**.  
-- `nest-cli.json` – Konfigurasi **NestJS CLI**.  
-- `package.json` – **Dependency management** untuk proyek.  
-- `tsconfig.json` – Konfigurasi **TypeScript**.  
-- `eslint.config.mjs` – Konfigurasi **ESLint** untuk standarisasi kode.  
+- **.env** – Konfigurasi **environment variables**.
+- **nest-cli.json** – Konfigurasi **NestJS CLI**.
+- **package.json** – Konfigurasi dependensi proyek.
+- **playwright.config.ts** – Konfigurasi Playwright untuk testing UI.
 
 📌 **Kelebihan:**  
-✅ **Memudahkan pengaturan environment dan dependency**.  
-✅ **Membantu menjaga kualitas kode dengan linting**.  
+✅ **Konfigurasi yang jelas** – Mudah mengubah pengaturan tanpa mengedit kode.
+✅ **Environment separation** – Dapat mengatur konfigurasi berbeda untuk development dan production.
 
 ---
 
 ## **🔍 Kesimpulan**  
-Struktur proyek ini **modular dan terorganisir**, dengan beberapa **design pattern** utama:  
-- **Modular Monolith** → Memudahkan pengelolaan fitur secara independen.  
-- **Dependency Injection** → Mengurangi coupling dan meningkatkan skalabilitas.  
-- **Repository Pattern** → Memisahkan logika bisnis dari database.  
-- **Middleware & Interceptor** → Untuk validasi dan manipulasi request/response.  
 
-Dengan struktur ini, proyek **mudah dikembangkan, diperluas, dan dikelola**, baik untuk **tim kecil maupun besar** 🚀.
+Proyek ini menggunakan **NestJS** dengan **Modular Architecture**, **Dependency Injection**, serta **Testing (Jest & Playwright)** untuk memastikan kualitas kode. Dengan struktur yang terorganisir, proyek ini mudah untuk dikembangkan dan dipelihara. 🚀
+
+
+
 
 ## Project setup
 
@@ -284,7 +294,7 @@ $ npm install
 ## Compile and run the project
 
 ```bash
-# development
+# start hasil build
 $ npm run start
 
 # watch mode
@@ -297,14 +307,14 @@ $ npm run start:prod
 ## Run tests
 
 ```bash
-# unit tests
+# unit tests & end to end test with playwright
 $ npm run test
 
-# e2e tests with jest
+# e2e tests with jest, but not use in this projects
 $ npm run test:e2e
 
 # e2e tests with playwright
-$ npm run test:pw
+$ npm run test:playwright
 
 # test coverage
 $ npm run test:cov
@@ -319,31 +329,6 @@ npm install -D @playwright/test
 npx playwright install chromium
 ```
 
-📌 **Catatan:**  
-- `@playwright/test` adalah framework testing bawaan dari Playwright.  
-- `npx playwright install chromium` hanya mengunduh Chromium (bisa juga `firefox` atau `webkit`).  
-
----
-
-### 🚀 2. Menjalankan Test  
-Gunakan perintah ini untuk menjalankan semua test:  
-
-```sh
-npx playwright test
-```
-
-Atau untuk menjalankan **test dalam mode terminal saja** (tanpa membuka browser GUI):  
-
-```sh
-npx playwright test --ui=none
-```
-
-Untuk menjalankan **test tertentu**, misalnya file `auth.spec.ts`:  
-
-```sh
-npx playwright test tests/auth.spec.ts
-```
-
 ---
 
 ### 🛠 3. Struktur Direktori tests
@@ -352,7 +337,6 @@ npx playwright test tests/auth.spec.ts
 └── 📁tests
     └── 📁jest
         └── app.e2e-spec.ts
-        └── auth.e2e-spec.ts
         └── jest-e2e.json
     └── 📁playwright
         └── auth.spec.ts
@@ -396,7 +380,6 @@ Untuk **merekam tindakan** di Playwright:
 npx playwright codegen http://localhost:4000
 ```
 
-
 ### 🔚 6. Note  
 - **Playwright bisa digunakan untuk menguji API & autentikasi berbasis cookie.**  
 - **Test harus meniru skenario user asli** seperti login & akses endpoint yang dilindungi.  
@@ -406,7 +389,7 @@ npx playwright codegen http://localhost:4000
 
 
 ## Dokumentasi Challenge
-<img src="./docs//challenge.png"/>
+<img src="./challenge.png"/>
 
 
 ## Deployment
