@@ -1,3 +1,4 @@
+
 **Table Of Content**
 - [Rest API with Nest framework TypeScript.](#rest-api-with-nest-framework-typescript)
     - [1. Buatlah simple rest api app dengan nestjs typescript dengan kriteria sebagai berikut:](#1-buatlah-simple-rest-api-app-dengan-nestjs-typescript-dengan-kriteria-sebagai-berikut)
@@ -38,7 +39,6 @@
   - [Stay in touch](#stay-in-touch)
   - [License](#license)
 
-
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
@@ -78,31 +78,7 @@
 ```
 └── 📁Final Nest JS
     └── 📁docs
-        └── 📁auth
-            └── AuthController.md
-            └── AuthService.md
-        └── challenge.png
-        └── 📁nestjs
-            └── dto.md
-            └── guard.md
-            └── interceptor.md
-            └── structure.md
-        └── 📁test
-            └── 📁jest
-                └── mock.md
-            └── README.md
     └── 📁prisma
-        └── 📁migrations
-            └── 📁20250201133230_create_table_users
-                └── migration.sql
-            └── 📁20250201164458_modify_field_email_to_be_unique
-                └── migration.sql
-            └── 📁20250202060043_create_model_products_and_change_name_model_user_to_users
-                └── migration.sql
-            └── 📁20250202060545_adding_field_price_product
-                └── migration.sql
-            └── migration_lock.toml
-        └── schema.prisma
     └── 📁src
         └── app.controller.spec.ts
         └── app.controller.ts

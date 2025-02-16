@@ -1,88 +1,63 @@
-import { Injectable, HttpStatus, BadRequestException, HttpException } from '@nestjs/common';
-import { UserService } from './../user/user.service';
-import { ResponseAPI } from '../../common/response-api.dto'
-import { RegisterDTO, LoginDTO } from './auth.dto';
+import { BadRequestException, ConflictException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../../common/prisma/prisma.service';
+import { LoginInterface, RegisterInterface, UserInterface } from './auth.interface';
+import { ResponseAPI } from '../../common/response/response';
+import * as bcrypt from 'bcrypt'
+import { Logger as WinstonLogger } from 'winston';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { JwtService } from '@nestjs/jwt';
 import { Response } from 'express';
-import { UserDTO } from '../user/user.dto';
-import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-    constructor(private userService: UserService, private jwtService: JwtService) { }
+    constructor(
+        private prismaService: PrismaService,
+        private jwtService: JwtService,
+        @Inject(WINSTON_MODULE_PROVIDER) private logger: WinstonLogger
+    ) { }
 
-    async Register(user: RegisterDTO): Promise<ResponseAPI<UserDTO>> {
-        const { email, password } = user;
-
-        const existingUser = await this.userService.findByEmail(email);
-        if (existingUser) throw new BadRequestException('Email sudah terdaftar');
-
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = { ...user, password: hashedPassword };
-
-        const createUser = await this.userService.create(newUser);
-
-        if (!createUser) throw new BadRequestException('Gagal membuat pengguna');
-
-        return new ResponseAPI(HttpStatus.CREATED, 'Pengguna berhasil dibuat', createUser);
-    }
-
-    async Login(user: LoginDTO, res: Response): Promise<ResponseAPI<UserDTO>> {
-        const { email, password } = user;
-        if (!process.env.JWT_SECRET) {
-            throw new HttpException('JWT_SECRET is not set', HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        const findUser = await this.userService.findByEmail(email);
-        if (!findUser) throw new HttpException('Email tidak ditemukan', HttpStatus.NOT_FOUND);
-
-        const isPasswordValid = await bcrypt.compare(password, findUser.password);
-        if (!isPasswordValid) throw new HttpException('Password salah', HttpStatus.UNAUTHORIZED);
-
-        const payload = { id: findUser.id, name: findUser.name, email: findUser.email };
-        const access_token: string = await this.jwtService.signAsync(payload, {
-            secret: process.env.JWT_SECRET,
-            expiresIn: '24h'
-        });
-        res.cookie('access_token', access_token, {
-            httpOnly: true,
-            maxAge: 24 * 60 * 60 * 1000,
-        });
-        const data = {
-            name: findUser.name,
-            email: findUser.email
-        }
-        res.status(HttpStatus.OK).json(new ResponseAPI(HttpStatus.OK, 'Login berhasil', data));
-        return new ResponseAPI(HttpStatus.OK, 'Login berhasil', data);
-    }
-
-    async GetProfile(id: number) {
-        try {
-            const findUser = await this.userService.findByID(id);
-            if (findUser) {
-                return new ResponseAPI(HttpStatus.OK, 'User found', findUser)
-            } else {
-                return new ResponseAPI(HttpStatus.NOT_FOUND, 'User not found', null)
-            }
-        } catch (error) {
-            console.log(error);
-            return new ResponseAPI(HttpStatus.NOT_FOUND, 'User not found', null)
-        }
-
-    }
-
-    async Logout(res: Response): Promise<ResponseAPI<null>> {
-        try {
-            res.clearCookie('access_token', { httpOnly: true });
-            res.redirect('/view/login');
-            return await new Promise<ResponseAPI<null>>(() => ({
-                statusCode: HttpStatus.OK,
-                message: 'Logout berhasil',
-                data: null
-            }))
-        } catch (error) {
-            console.error(error);
-            throw new HttpException('Gagal logout', HttpStatus.INTERNAL_SERVER_ERROR);
+    async login(user: LoginInterface, res: Response): Promise<void> {
+        const findUser = await this.prismaService.user.findFirst({ where: { email: user.email } })
+        if (!findUser) throw new UnauthorizedException('User not found')
+        const comparePassword = await bcrypt.compare(user.password, findUser.password)
+        if (comparePassword) {
+            this.logger.info(`\nUser Login Success: ${user.email}`)
+            const access_token: string = this.jwtService.sign({ id: findUser.id }, {
+                secret: process.env.JWT_SECRET,
+                expiresIn: '24h'
+            })
+            res.cookie('access_token', access_token, {
+                httpOnly: true,
+                maxAge: 24 * 60 * 60 * 1000,
+            });
+            res.status(HttpStatus.OK).json(new ResponseAPI(HttpStatus.ACCEPTED, 'Success Login', {
+                name: findUser.name,
+                email: findUser.email,
+                role: findUser.role
+            }));
+        } else {
+            this.logger.warn(`\nUser Login Failed: ${user.email}`)
+            throw new UnauthorizedException('Password not match')
         }
     }
+
+    async register(user: RegisterInterface): Promise<ResponseAPI<UserInterface | undefined>> {
+        const findUser = await this.prismaService.user.findFirst({ where: { email: user.email } })
+        if (findUser) throw new ConflictException('Email Already Exist')
+        const hashPassword = await bcrypt.hash(user.password, 10)
+        user.password = hashPassword
+        const response = await this.prismaService.user.create({ data: user })
+        if (response !== null) {
+            return new ResponseAPI(HttpStatus.CREATED, 'Success Register User', {
+                name: response.name,
+                email: response.email,
+                role: response.role
+            })
+        } else {
+            throw new BadRequestException('Failed Register User')
+        }
+    }
+
+
+
 }

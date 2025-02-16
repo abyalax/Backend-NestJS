@@ -1,29 +1,65 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './modules/user/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaModule } from './modules/prisma/prisma.module';
+import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
-import { ProductModule } from './modules/product/product.module';
-import { ProductController } from './modules/product/product.controller';
-import { ProductService } from './modules/product/product.service';
-import { UserController } from './modules/user/user.controller';
-import { UserService } from './modules/user/user.service';
-import { AuthService } from './modules/auth/auth.service';
+import { PrismaModule } from './common/prisma/prisma.module';
+import { WinstonModule } from 'nest-winston';
+import * as winston from 'winston'
+import { LogMiddleware } from './common/log/log.middleware';
+import { ValidationModule } from './common/validation/validation.module';
+import { JwtModule, JwtService } from '@nestjs/jwt';
+import { AuthMiddleware } from './common/auth/auth.middleware';
+import { APP_GUARD } from '@nestjs/core';
+import { RoleGuard } from './common/role/role.guard';
 
 @Module({
   imports: [
+    WinstonModule.forRoot({
+      level: 'debug',
+      format: winston.format.combine(
+        winston.format.colorize({ all: true }),
+        winston.format.timestamp(),
+        winston.format.printf(({ timestamp, level, message, ...meta }) => {
+          const formattedMessage = typeof message === 'object' ? JSON.stringify(message, null, 2) : message;
+          const metaString = Object.keys(meta).length ? JSON.stringify(meta, null, 2) : '';
+          return `${timestamp as string} [${level}]: ${formattedMessage as string} ${metaString}`;
+        })
+      ),
+      transports: [new winston.transports.Console({
+        level: 'debug',
+        consoleWarnLevels: ['warn', 'error', 'info', 'debug']
+      })],
+    }),
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    UserModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      global: true,
+      signOptions: { expiresIn: '24h' },
+    }),
     PrismaModule,
+    UserModule,
     AuthModule,
-    ProductModule
+    ValidationModule.forRoot(true),
   ],
-  controllers: [AppController, UserController, ProductController],
-  providers: [AppService, UserService, AuthService, ProductService],
-  exports: [AppService, UserService,AuthService, ProductService]
+  controllers: [AppController],
+  providers: [AppService, JwtService, {
+    provide: APP_GUARD,
+    useClass: RoleGuard
+  }],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LogMiddleware).forRoutes({
+      method: RequestMethod.ALL,
+      path: '/api/*path'
+    })
+    consumer.apply(AuthMiddleware).forRoutes({
+      method: RequestMethod.ALL,
+      path: '/api/user/*path'
+    })
+  }
+}

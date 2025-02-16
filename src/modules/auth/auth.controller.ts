@@ -1,46 +1,33 @@
-import { Body, Controller, HttpStatus, Post, HttpCode, Res, Get, Param, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Post, UseInterceptors, Res, UseFilters, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDTO, RegisterDTO } from './auth.dto';
-import { UserDTO } from '../user/user.dto';
-import { ResponseAPI } from '../../common/response-api.dto';
-import { AuthGuard } from '../../common/authcookie.guard';
+import { LoginInterface, RegisterInterface } from './auth.interface';
+import { ResponseInterceptor } from '../../common/response/response.interceptor';
+import { Response } from 'express';
+import { ValidationPipe } from '../../common/validation/validation.pipe';
+import { loginUserRequestValidation } from '../../models/login.model';
+import { ValidationFilter } from '../../common/validation/validation.filter';
+import { Roles } from '../../common/role/role.decorator';
 
-@Controller('/api')
+@Controller('/api/auth')
+@UseInterceptors(ResponseInterceptor)
 export class AuthController {
-    constructor(
-        private authService: AuthService
-    ) { }
+    constructor(private authService: AuthService) { }
 
-    @HttpCode(HttpStatus.OK)
-    @Get('/auth')
-    helloWorld(@Res() res: Response) {
-        res.status(HttpStatus.OK).send('API Auth is running');
+    @Post('/register')
+    register(@Body() user: RegisterInterface) {
+        return this.authService.register(user)
     }
 
-    @HttpCode(HttpStatus.CREATED)
-    @Post('/auth/register')
-    async register(@Body() user: RegisterDTO): Promise<ResponseAPI<UserDTO>> {
-        return await this.authService.Register(user);
+    @Post('/login')
+    @UseInterceptors(ResponseInterceptor)
+    @UseFilters(ValidationFilter)
+    login(@Body(new ValidationPipe(loginUserRequestValidation)) user: LoginInterface, @Res() res: Response) {
+        return this.authService.login(user, res)
     }
 
-    @HttpCode(HttpStatus.OK)
-    @Post('/auth/login')
-    async login(@Body() user: LoginDTO, @Res() res: Response) {
-        return await this.authService.Login(user, res);
-    }
-
-    @UseGuards(AuthGuard)
-    // @UseInterceptors(GetCookieInterceptor)  //for example
-    @HttpCode(HttpStatus.OK)
-    @Get('/profile/:id')
-    async getProfile(@Param('id') id: string) {
-        return await this.authService.GetProfile(parseInt(id));
-    }
-
-    @HttpCode(HttpStatus.OK)
-    @Post('/auth/logout')
-    logout(@Res() res: Response) {
-        return this.authService.Logout(res);
+    @Get('/hello')
+    @Roles(['admin'])
+    hello() {
+        return { message: 'Hello User, You are Authorized' }
     }
 }
